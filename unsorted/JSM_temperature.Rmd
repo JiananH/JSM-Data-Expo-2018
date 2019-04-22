@@ -1,0 +1,128 @@
+---
+title: "JSM temperature"
+author: "Jianan Hui"
+date: "March 22, 2019"
+output:
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+```
+
+## Data processing
+```{r load, include=FALSE}
+setwd("~/Dropbox/Side projects/JSM/JSM-Data-Expo-2018")
+load("data.Rdata")
+```
+
+## View dataset
+
+Forecast weather:
+```{r forecast}
+head(forecast)
+```
+
+Merged dataset for history weather:
+
+```{r histloc}
+head(hist.loc[,c(2:5)])
+```
+
+Min Temperature:
+
+```{r MinTemp, echo=FALSE}
+clean.for.hist.loc.maxT=subset(clean.for.hist.loc.maxT,daysfromforecast==0)
+clean.for.hist.loc.minT=subset(clean.for.hist.loc.minT,daysfromforecast==0)
+head(clean.for.hist.loc.minT[,c(1:6,9:11)])
+plot(clean.for.hist.loc.minT$Min_TemperatureF,clean.for.hist.loc.minT$value,pch=20,xlim=c(-120,120),xlab="Actual",ylab = "Forecasted",main='Min Temp')
+abline(0,1,col='red')
+```
+
+Max Temperature:
+
+```{r MaxTemp, echo=FALSE}
+head(clean.for.hist.loc.maxT[,c(1:6,9:11)])
+plot(clean.for.hist.loc.maxT$Max_TemperatureF,clean.for.hist.loc.maxT$value,pch=20,xlim=c(-120,120),xlab="Actual",ylab = "Forecasted",main="Max Temp")
+abline(0,1,col='red')
+```
+
+Linear models; check significance for slope:
+```{r Model, echo=TRUE}
+significance=function(x){
+  test<- summary(x)$coefficients
+  betaHat <- test[2,1]
+  betaSE <- test[2,2]
+  t <- (betaHat-1)/ betaSE
+  pVal <- pnorm(abs(t),lower.tail = FALSE)*2
+  return(pVal)
+}
+
+lm_model_1=lm(Max_TemperatureF~as.numeric(value),data=clean.for.hist.loc.maxT)
+summary(lm_model_1)
+significance(lm_model_1)
+lm_model_2=lm(Min_TemperatureF~as.numeric(value),data=clean.for.hist.loc.maxT)
+summary(lm_model_2)
+significance(lm_model_2)
+lm_model_3=lm(Max_TemperatureF~as.numeric(value),data=clean.for.hist.loc.minT)
+summary(lm_model_3)
+significance(lm_model_3)
+lm_model_4=lm(Min_TemperatureF~as.numeric(value),data=clean.for.hist.loc.minT)
+summary(lm_model_4)
+significance(lm_model_4)
+```
+<!-- Check significance for slope -->
+<!-- ```{r significance, echo=TRUE} -->
+<!-- significance=function(x){ -->
+<!--   test<- summary(x)$coefficients -->
+<!--   betaHat <- test[2,1] -->
+<!--   betaSE <- test[2,2] -->
+<!--   t <- (betaHat-1)/ betaSE -->
+<!--   pVal <- pnorm(abs(t),lower.tail = FALSE)*2 -->
+<!--   return(pVal) -->
+<!-- } -->
+<!-- significance(lm_model_1) -->
+<!-- significance(lm_model_2) -->
+<!-- significance(lm_model_3) -->
+<!-- significance(lm_model_4) -->
+<!-- ``` -->
+Check prediction performance on different temperatures:
+Temperature wise:
+```{r prediction1, echo=TRUE}
+signif <- function(summary){
+  coef=summary$coefficients
+  pvalue=pnorm(abs((coef[,1]-1)/coef[,2]),lower.tail = F)*2
+  return(pvalue)
+}
+lm_pred_temp_1=lm(Max_TemperatureF~-1+as.factor(as.numeric(value)),data=clean.for.hist.loc.maxT)
+#summary(lm_pred_temp_1)
+pvalue_pred_temp_1=signif(summary(lm_pred_temp_1))
+#plot(pvalue_pred_temp_1
+which(pvalue_pred_temp_1<0.05)
+```
+
+```{r prediction2, echo=TRUE}
+lm_pred_temp_2=lm(Min_TemperatureF~-1+as.factor(as.numeric(value)),data=clean.for.hist.loc.minT)
+#summary(lm_pred_temp_2)
+pvalue_pred_temp_2=signif(summary(lm_pred_temp_2))
+#pvalue_pred_temp_2
+which(pvalue_pred_temp_2<0.05)
+```
+
+```{r prediction3, echo=TRUE}
+lm_pred_loc_1=lm(Max_TemperatureF~-1+as.factor(AirPtCd):as.numeric(value),data=clean.for.hist.loc.maxT)
+summary(lm_pred_loc_1)
+coef1=summary(lm_pred_loc_1)$coefficients
+pvalue=pnorm(abs((coef1[,]-1)/coef1[,2]),lower.tail = F)*2
+which(pvalue<0.05)
+```
+
+```{r prediction4, echo=TRUE}
+lm_pred_loc_2=lm(Min_TemperatureF~-1+as.factor(AirPtCd):as.numeric(value),data=clean.for.hist.loc.minT)
+summary(lm_pred_loc_2)
+coef2=summary(lm_pred_loc_2)$coefficients
+pvalue=pnorm(abs((coef2[,1]-1)/coef2[,2]),lower.tail = F)*2
+which(pvalue<0.05)
+```
