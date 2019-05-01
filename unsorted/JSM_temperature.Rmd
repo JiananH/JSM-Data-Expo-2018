@@ -115,7 +115,7 @@ which(pvalue_pred_temp_2<0.05)
 lm_pred_loc_1=lm(Max_TemperatureF~-1+as.factor(AirPtCd):as.numeric(value),data=clean.for.hist.loc.maxT)
 summary(lm_pred_loc_1)
 coef1=summary(lm_pred_loc_1)$coefficients
-pvalue=pnorm(abs((coef1[,]-1)/coef1[,2]),lower.tail = F)*2
+pvalue=pnorm(abs((coef1[,1]-1)/coef1[,2]),lower.tail = F)*2
 which(pvalue<0.05)
 ```
 
