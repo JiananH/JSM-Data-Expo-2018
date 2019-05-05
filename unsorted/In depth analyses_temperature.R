@@ -96,9 +96,11 @@ lm_loc_maxT[[i]]=lmList(Max_TemperatureF~as.numeric(value)|AirPtCd,data=cleaned.
 lm_temp_minT=lm_temp_maxT=vector('list',7)
 for (i in 1:7){
   cleaned.minT=subset(clean.for.hist.loc.minT,daysfromforecast==i-1)
-  lm_temp_minT[[i]]=lmList(Min_TemperatureF~as.numeric(value)|as.factor(as.numeric(value)),data=cleaned.minT)
+  cleaned.minT$factorvalue=as.factor(cleaned.minT$Min_TemperatureF)
+  lm_temp_minT[[i]]=lmList(Min_TemperatureF~as.numeric(value)|factorvalue,data=cleaned.minT)
   cleaned.maxT=subset(clean.for.hist.loc.maxT,daysfromforecast==i-1)
-  lm_temp_maxT[[i]]=lmList(Max_TemperatureF~as.numeric(value)|as.factor(as.numeric(value)),data=cleaned.maxT)
+  cleaned.maxT$factorvalue=as.factor(as.numeric(cleaned.maxT$value))
+  lm_temp_maxT[[i]]=lmList(Max_TemperatureF~as.numeric(value)|factorvalue,data=cleaned.maxT)
 }
 
 #Build a model together with data from previous day can already improve prediction
